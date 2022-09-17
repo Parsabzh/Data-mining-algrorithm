@@ -1,0 +1,92 @@
+
+
+Class Node
+
+    left_child: Node
+        left child node. On initialisation, this attribute will be empty. 
+    right_child: Node
+        Right child node. On initialisation, this attribute will be empty. 
+    split_col_num: int
+        Column number which has the lowest Gini impurity for splitting. Note that we can refer to the Column
+        number as the actual column name is not important.
+    split_number: double
+        Number that will be used to perform the best possible split. Note that for boolean labels we can still use a 
+        number as 0.5 divides boolean values in either the left or the right child node.
+    impurity: double [WE MIGHT NOT NEED THIS | IT IS NOT MENTIONED IN THE ASSIGNMENT]
+        Number that indicates the Gini impurity of the node
+    X: numpy.ndarray
+        Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
+        Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
+    y: numpy.array
+        Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
+        Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
+    
+
+    set_split_values(split_col_num, split_number):
+
+        sets the split values after these have been calculated. This is only done for none-leaf nodes.
+
+    set_impurity(self, impurity) [WE MIGHT NOT NEED THIS | IT IS NOT MENTIONED IN THE ASSIGNMENT]
+
+        function that sets the impurity to the given value
+
+
+
+
+tree_grow(X, y, nmin, minleaf, nfeat)
+
+    node = Node(X, y)
+    split_node(node, nmin, minleaf, nfeat)
+
+
+split_node(Node node, int nmin, int minleaf, int nfeat)
+
+
+    if (nmin_check(y) < nmin):
+        return
+
+    cols = get_nfeat_cols([size of node.X], nfeat)
+
+    gini_val = 9999
+    best_col = None
+    split_val_best = None
+    for col_num in col_nums:
+
+        temp_gini, split_val = apply_gini(x[col_num], y, minleaf)
+
+        if gini_val > temp_gini 
+            gini_val = temp_gini
+            best_col = col_num
+            split_val_best = split_val
+    
+
+    node.set_split_values(best_col, split_val_best)
+
+
+    node = create_childs(node, best_col, split_val)
+
+    split_node(node.left_child, nmin, minleaf, nfeat)
+    split_node(node.right_child, nmin, minleaf, nfeat)
+
+    return node
+        
+
+nmin_check(y, nmin)
+
+    checks if y has more that nmin values. If not, node must not be splitted and tree will not
+    be grown further.
+
+get_nfeat_cols(int total_col_nums, int nfeat)
+
+    function that returns a random subset (size nfeat) of [0, total_col_nums-1]. If nfeat == [number of x_cols],
+    it should return nothing else than all X columns.
+
+apply_gini(x_col, y, minleaf)
+
+    function that returns both the gini impurity and gini split number (with lowest impurity) for the specific column.
+    split may only be chosen if it makes sure that the eventual leafs have at least minleaf data points.
+
+create_childs(Node node, int best_col, double split_val)
+
+    function that, given the split_col and split_val, splits the data set in two parts and creates two new Node 
+    objects (including their X, y attributes only). These objects are added to the node as left/right child objects.

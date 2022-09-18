@@ -50,7 +50,7 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
     cols = get_nfeat_cols([size of node.X], nfeat)
 
     gini_val = 9999
-    best_col = None
+    best_col = -1
     split_val_best = None
     for col_num in col_nums:
 
@@ -62,8 +62,10 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
             split_val_best = split_val
     
 
-    node.set_split_values(best_col, split_val_best)
+    if(best_col == -1):
+        return 
 
+    node.set_split_values(best_col, split_val_best)
 
     node = create_childs(node, best_col, split_val)
 
@@ -76,11 +78,11 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
 nmin_check(y, nmin)
 
     checks if y has more that nmin values. If not, node must not be splitted and tree will not
-    be grown further.
+    be grown further. boolean output
 
 check_impurity(y)
 
-    checks if the impurity is 0. In that case, no more splits are required.
+    checks if the impurity is 0. In that case, no more splits are required. Boolean output.
 
 get_nfeat_cols(int total_col_nums, int nfeat)
 
@@ -90,7 +92,8 @@ get_nfeat_cols(int total_col_nums, int nfeat)
 apply_gini(x_col, y, minleaf)
 
     function that returns both the gini impurity and gini split number (with lowest impurity) for the specific column.
-    split may only be chosen if it makes sure that the eventual leafs have at least minleaf data points.
+    split may only be chosen if it makes sure that the eventual leafs have at least minleaf data points. If there can't 
+    be found a split that meets the minleaf requirement, -1 is returned as column name and no split is made.
 
 create_childs(Node node, int best_col, double split_val)
 

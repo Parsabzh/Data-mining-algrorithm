@@ -44,6 +44,8 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
 
     if (nmin_check(y) < nmin):
         return
+    if (impurity == 0):
+        return
 
     cols = get_nfeat_cols([size of node.X], nfeat)
 

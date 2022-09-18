@@ -54,9 +54,9 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
     split_val_best = None
     for col_num in col_nums:
 
-        temp_gini, split_val = apply_gini(x[col_num], y, minleaf)
+        temp_gini, split_val, split_found = apply_gini(x[col_num], y, minleaf)
 
-        if gini_val > temp_gini 
+        if (gini_val > temp_gini && split_found):
             gini_val = temp_gini
             best_col = col_num
             split_val_best = split_val
@@ -93,7 +93,7 @@ apply_gini(x_col, y, minleaf)
 
     function that returns both the gini impurity and gini split number (with lowest impurity) for the specific column.
     split may only be chosen if it makes sure that the eventual leafs have at least minleaf data points. If there can't 
-    be found a split that meets the minleaf requirement, -1 is returned as column name and no split is made.
+    be found a split that meets the minleaf requirement, split_found is returned as False.
 
 create_childs(Node node, int best_col, double split_val)
 

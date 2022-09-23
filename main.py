@@ -1,53 +1,6 @@
 import numpy as np
+from node import Node
 
-
-    # left_child: Node
-    #     left child node. On initialisation, this attribute will be empty. 
-    # right_child: Node
-    #     Right child node. On initialisation, this attribute will be empty. 
-    # split_col_num: int
-    #     Column number which has the lowest Gini impurity for splitting. Note that we can refer to the Column
-    #     number as the actual column name is not important.
-    # split_number: double
-    #     Number that will be used to perform the best possible split. Note that for boolean labels we can still use a 
-    #     number as 0.5 divides boolean values in either the left or the right child node.
-    # X: numpy.ndarray
-    #     Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
-    #     Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
-    # y: numpy.array
-    #     Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
-    #     Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
-
-
-
-class Node:
-
-    def __init__(self, X, y) -> None:
-
-        self.X = X
-        self.y = y
-        self.left_child = None
-        self.right_child = None
-        self.split_col_num = None
-        self.split_number = None
-    
-    def set_split_values(self, split_col_num, split_number):
-
-        self.split_col_num = split_col_num
-        self.split_number = split_number
-    
-    def set_left_child(self, X, y):
-
-        self.left_child =  Node(X, y)
-    
-    def set_right_child(self, X, y):
-
-        self.right_child =  Node(X, y)
-
-
-
-
-        
 
 
 
@@ -85,27 +38,12 @@ def impurity(arr):
 
     size = len(arr)
 
-
     counts = dict(zip(*np.unique(arr, return_counts=True)))
     
     if (0 in counts) & (1 in counts):
         return (counts[0] / size) * (counts[1] / size)
     else:
         return 0
-
-
-
-# array=np.array([1,0,1,1,1,0,0,1,1,0,1])
-
-# print(impurity(array))
-
-# array=np.array([0,0,0,0,0,0,0,0,0,0,0])
-
-# print(impurity(array))
-
-def split(arr, cond):
-  return [arr[cond], arr[~cond]]
-
 
 def bestsplit(x_col, y, minleaf):
     """Given a single column, it finds the best split value with the lowest impurity.
@@ -117,7 +55,8 @@ def bestsplit(x_col, y, minleaf):
         minleaf: parameter that sets the minimum number of observations in data required to make a split
 
     Returns:
-        Boolean, returns true if there are more observations than nmin."""
+        bst_imp: lowest obtained gini value. 999 if nothing is found.
+        bst_splt: split value that obtains the lowest gini impurity. None if not found."""
 
     # Find the split values
     x_col_sor = np.sort(np.unique(x_col))
@@ -134,9 +73,10 @@ def bestsplit(x_col, y, minleaf):
     # Loop over the split values to obtain the best
     for splt in splits:
 
-        left, right = split(mat, mat[:,0] <= splt)
+        left = mat[mat[:,0] <= splt,1]
+        right = mat[mat[:,0] > splt,1]
 
-        imp = ((len(left) / s) * impurity(left[:,])) + ((len(right) / s) * impurity(right[:,]))
+        imp = ((len(left) / s) * impurity(left)) + ((len(right) / s) * impurity(right))
 
         if((imp < bst_imp) & nmin_check(left, minleaf) & nmin_check(right, minleaf)):
 
@@ -146,24 +86,45 @@ def bestsplit(x_col, y, minleaf):
     return bst_imp, bst_splt
 
 
+def tree_grow(X, y, nmin, minleaf, nfeat):
 
-# credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
-
-# bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
-# print(bst_imp, bst_splt)
-
-# credit_data = np.genfromtxt('data_2.txt', delimiter=',', skip_header=True)
-
-# bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
-# print(bst_imp, bst_splt)
+    node = Node(X, y)
+    node = split_node(node, nmin, minleaf, nfeat)
+    
 
 
+def split_node(node, nmin, minleaf, nfeat):
 
-data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
-c = np.shape(data)[1] # number of columns
 
-X = data[:,:c-1]
-y = data[:,c-1]
+    if (nmin_check(node.y, nmin)):
+        return node
+    if (check_impurity(node.y) == 0):
+        return node
 
-node = Node(X, y)
-print(node)
+    cols = get_nfeat_cols(np.shape(node.X)[1], nfeat)
+
+    best_gini = 999
+    best_col = -1
+    split_val_best = None
+
+    for i in cols:
+
+        temp_gini, split_val = bestsplit(node.X[i].copy(), node.y.copy(), minleaf)
+
+        if (best_gini > temp_gini):
+            best_gini = temp_gini
+            best_col = i
+            split_val_best = split_val
+    
+
+    if(best_gini == 999):
+        return node
+
+    node.set_split_values(best_col, split_val_best)
+
+    node = create_childs(node, best_col, split_val)
+
+    split_node(node.left_child, nmin, minleaf, nfeat)
+    split_node(node.right_child, nmin, minleaf, nfeat)
+
+    return node

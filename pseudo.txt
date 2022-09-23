@@ -36,7 +36,8 @@ Class Node
 tree_grow(X, y, nmin, minleaf, nfeat)
 
     node = Node(X, y)
-    split_node(node, nmin, minleaf, nfeat)
+    node = plit_node(node, nmin, minleaf, nfeat)
+    
 
 
 split_node(Node node, int nmin, int minleaf, int nfeat)
@@ -49,20 +50,21 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
 
     cols = get_nfeat_cols([size of node.X], nfeat)
 
-    gini_val = 9999
+    gini_val = 999
     best_col = -1
     split_val_best = None
+
     for col_num in col_nums:
 
-        temp_gini, split_val, split_found = apply_gini(x[col_num], y, minleaf)
+        temp_gini, split_val = apply_gini(x[col_num], y, minleaf)
 
-        if (gini_val > temp_gini && split_found):
+        if (gini_val > temp_gini):
             gini_val = temp_gini
             best_col = col_num
             split_val_best = split_val
     
 
-    if(best_col == -1):
+    if(gini_val == 999):
         return 
 
     node.set_split_values(best_col, split_val_best)
@@ -75,16 +77,16 @@ split_node(Node node, int nmin, int minleaf, int nfeat)
     return node
         
 
-nmin_check(y, nmin)
+nmin_check(y, nmin) Dizzy
 
     checks if y has more that nmin values. If not, node must not be splitted and tree will not
     be grown further. boolean output
 
-check_impurity(y)
+check_impurity(y) Dizzy
 
     checks if the impurity is 0. In that case, no more splits are required. Boolean output.
 
-get_nfeat_cols(int total_col_nums, int nfeat)
+get_nfeat_cols(int total_col_nums, int nfeat) Dizzy
 
     function that returns a random subset (size nfeat) of [0, total_col_nums-1]. If nfeat == [number of x_cols],
     it should return nothing else than all X columns.

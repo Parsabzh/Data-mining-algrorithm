@@ -1,0 +1,169 @@
+import numpy as np
+
+
+    # left_child: Node
+    #     left child node. On initialisation, this attribute will be empty. 
+    # right_child: Node
+    #     Right child node. On initialisation, this attribute will be empty. 
+    # split_col_num: int
+    #     Column number which has the lowest Gini impurity for splitting. Note that we can refer to the Column
+    #     number as the actual column name is not important.
+    # split_number: double
+    #     Number that will be used to perform the best possible split. Note that for boolean labels we can still use a 
+    #     number as 0.5 divides boolean values in either the left or the right child node.
+    # X: numpy.ndarray
+    #     Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
+    #     Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
+    # y: numpy.array
+    #     Data of the features that put in the leaf node. If the node becomes a parent node, the data is removed from the node. 
+    #     Put differently, if X is empty, the node is considered a parent node; not the end of the decision tree.
+
+
+
+class Node:
+
+    def __init__(self, X, y) -> None:
+
+        self.X = X
+        self.y = y
+        self.left_child = None
+        self.right_child = None
+        self.split_col_num = None
+        self.split_number = None
+    
+    def set_split_values(self, split_col_num, split_number):
+
+        self.split_col_num = split_col_num
+        self.split_number = split_number
+    
+    def set_left_child(self, X, y):
+
+        self.left_child =  Node(X, y)
+    
+    def set_right_child(self, X, y):
+
+        self.right_child =  Node(X, y)
+
+
+
+
+        
+
+
+
+def nmin_check(obs, nmin):
+
+    """checks if y has more that nmin values. If not, node must not be splitted and tree will not
+   be grown further. boolean output.
+
+    Args:
+        obs: column of an array of dataset
+        nmin: parameter that sets the minimum number of observations in data required to make a split
+
+    Returns:
+        Boolean, returns true if there are more observations than nmin."""
+
+    if len(obs) > nmin:
+        return True
+    else:
+        return False
+
+def impurity(arr):
+    """
+    This is an example of Google style.
+
+    Args:
+        param1: This is the first param.
+        param2: This is a second param.
+
+    Returns:
+        This is a description of what is returned.
+
+    Raises:
+        KeyError: Raises an exception.
+    """    
+
+    size = len(arr)
+
+
+    counts = dict(zip(*np.unique(arr, return_counts=True)))
+    
+    if (0 in counts) & (1 in counts):
+        return (counts[0] / size) * (counts[1] / size)
+    else:
+        return 0
+
+
+
+# array=np.array([1,0,1,1,1,0,0,1,1,0,1])
+
+# print(impurity(array))
+
+# array=np.array([0,0,0,0,0,0,0,0,0,0,0])
+
+# print(impurity(array))
+
+def split(arr, cond):
+  return [arr[cond], arr[~cond]]
+
+
+def bestsplit(x_col, y, minleaf):
+    """Given a single column, it finds the best split value with the lowest impurity.
+    Note that it does not work if there is only a single row in the input X.
+
+    Args:
+        x_col: column from the X data matrix
+        y: The labels of the data set.
+        minleaf: parameter that sets the minimum number of observations in data required to make a split
+
+    Returns:
+        Boolean, returns true if there are more observations than nmin."""
+
+    # Find the split values
+    x_col_sor = np.sort(np.unique(x_col))
+    s = len(x_col_sor)
+    splits = (x_col_sor[0:s-1]+x_col_sor[1:8])/2
+
+    # create a sorted matrix of both the column and the labels
+    mat = np.column_stack((x_col,y))
+    mat = mat[mat[:, 0].argsort()]
+
+    bst_splt = None
+    bst_imp = 999
+
+    # Loop over the split values to obtain the best
+    for splt in splits:
+
+        left, right = split(mat, mat[:,0] <= splt)
+
+        imp = ((len(left) / s) * impurity(left[:,])) + ((len(right) / s) * impurity(right[:,]))
+
+        if((imp < bst_imp) & nmin_check(left, minleaf) & nmin_check(right, minleaf)):
+
+            bst_splt = splt
+            bst_imp = imp
+    
+    return bst_imp, bst_splt
+
+
+
+# credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
+
+# bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
+# print(bst_imp, bst_splt)
+
+# credit_data = np.genfromtxt('data_2.txt', delimiter=',', skip_header=True)
+
+# bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
+# print(bst_imp, bst_splt)
+
+
+
+data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
+c = np.shape(data)[1] # number of columns
+
+X = data[:,:c-1]
+y = data[:,c-1]
+
+node = Node(X, y)
+print(node)

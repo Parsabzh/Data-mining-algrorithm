@@ -2,8 +2,6 @@ import numpy as np
 from node import Node
 
 
-
-
 def nmin_check(obs, nmin):
 
     """checks if y has more that nmin values. If not, node must not be splitted and tree will not
@@ -55,7 +53,6 @@ def check_pure_node(arr):
     else:
         return False
 
-
 def get_nfeat_cols(num_cols, nfeat):
 
     """function that returns a random subset (size nfeat) of the number of columns of a dataframr. Nfeat cannot be larger than the number of columns
@@ -71,7 +68,7 @@ def get_nfeat_cols(num_cols, nfeat):
         print("nfeat cannot be larger than the number of attributes")
     else:
         cols_nfeat = np.random.choice(np.arange(0, num_cols), size=nfeat, replace=False)
-        return cols_nfeat
+        return np.sort(cols_nfeat)
 
 def bestsplit(x_col, y, minleaf):
     """Given a single column, it finds the best split value with the lowest impurity.
@@ -115,11 +112,11 @@ def bestsplit(x_col, y, minleaf):
     
     return bst_imp, bst_splt
 
-
 def tree_grow(X, y, nmin, minleaf, nfeat):
 
     node = Node(X, y)
     node = split_node(node, nmin, minleaf, nfeat)
+    return node
 
 def create_childs(node, best_col, split_val):
     
@@ -133,8 +130,6 @@ def create_childs(node, best_col, split_val):
 
     return node
     
-
-
 def split_node(node, nmin, minleaf, nfeat):
 
 
@@ -148,8 +143,6 @@ def split_node(node, nmin, minleaf, nfeat):
     best_gini = 999
     best_col = -1
     split_val_best = None
-
-    # print(cols)
 
     for i in cols:
 
@@ -169,11 +162,57 @@ def split_node(node, nmin, minleaf, nfeat):
 
     node = create_childs(node, best_col, split_val_best)
 
+    # print(f"best col: {best_col}, split_val:{split_val_best}")
+    # print("left")
+    # print(node.left_child.X)
+    # print(node.left_child.y)
+    # print("right")
+    # print(node.right_child.X)
+    # print(node.right_child.y)
 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     split_node(node.left_child, nmin, minleaf, nfeat)
     split_node(node.right_child, nmin, minleaf, nfeat)
 
     return node
+
+
+
+def maj_vote(y):
+    """Takes the majority vote of the data points in the leaf. If number of labels are 
+    equal, 0 is chosen.
+
+    Args:
+        y: Label values of the leaf
+
+    Returns:
+        Most occuring class
+    
+    """
+
+    return np.bincount(y.astype(int)).argmax()
+
+
+def tree_pred(x, tr):
+
+    return traverse_node(tr, x)
+
+
+def traverse_node(node, x):
+
+    if(node.left_child is None):
+        return maj_vote(node.y)
+
+    if(x[node.split_col_num] < node.split_number):
+        return traverse_node(node.left_child, x)
+    else:
+        return traverse_node(node.right_child, x)
+    
+
+
+
+
+
 
 
 
@@ -185,10 +224,14 @@ print("START PROGRAM\n\n")
 
 credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 
-print(credit_data)
+# print(credit_data)
 
 print("\n \n")
 
 
 tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
 
+res = tree_pred([25,0,1,32,0], tree)
+print(f"res: {res}")
+
+print( maj_vote(np.array([1,0])) )

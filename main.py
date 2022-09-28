@@ -23,18 +23,14 @@ def nmin_check(obs, nmin):
 
 def impurity(arr):
     """
-    This is an example of Google style.
+    Function that checks the impurity of a vector, using the Gini index
 
-    Args:
-        param1: This is the first param.
-        param2: This is a second param.
+    # Args:
+    # arr: column of an array of dataset
 
-    Returns:
-        This is a description of what is returned.
-
-    Raises:
-        KeyError: Raises an exception.
-    """    
+    # Returns:impurity
+    # impurity.
+    # """
 
     size = len(arr)
 
@@ -44,6 +40,38 @@ def impurity(arr):
         return (counts[0] / size) * (counts[1] / size)
     else:
         return 0
+
+def check_pure_node(arr):
+
+    """Function that checks whether vector is pure, using the Gini index
+
+    # Args:
+    # arr: column of an array of dataset
+
+    # Returns: Boolean."""
+    result = np.all(arr == arr[0])
+    if result:
+        return True
+    else:
+        return False
+
+
+def get_nfeat_cols(num_cols, nfeat):
+
+    """function that returns a random subset (size nfeat) of the number of columns of a dataframr. Nfeat cannot be larger than the number of columns
+
+      Args:
+      total_col_nums: number of columns of a matrix/dataframe
+      nfeat: parameter that determines the number of features that will be used for determining a split of the data
+
+      Returns:
+      random subset of number of columns.
+      """
+    if nfeat > num_cols:
+        print("nfeat cannot be larger than the number of attributes")
+    else:
+        cols_nfeat = np.random.choice(np.arange(0, num_cols), size=nfeat, replace=False)
+        return cols_nfeat
 
 def bestsplit(x_col, y, minleaf):
     """Given a single column, it finds the best split value with the lowest impurity.
@@ -61,7 +89,7 @@ def bestsplit(x_col, y, minleaf):
     # Find the split values
     x_col_sor = np.sort(np.unique(x_col))
     s = len(x_col_sor)
-    splits = (x_col_sor[0:s-1]+x_col_sor[1:8])/2
+    splits = (x_col_sor[0:s-1]+x_col_sor[1:s])/2
 
     # create a sorted matrix of both the column and the labels
     mat = np.column_stack((x_col,y))
@@ -90,15 +118,28 @@ def tree_grow(X, y, nmin, minleaf, nfeat):
 
     node = Node(X, y)
     node = split_node(node, nmin, minleaf, nfeat)
+
+def create_childs(node, best_col, split_val):
+    left_child_attributes = node.X[node.X[:, best_col]<split_val, ]
+    left_child_classification = node.y[node.X[:, best_col]<split_val, ]
+    right_child_attributes = node.X[node.X[:, best_col]>split_val, ]
+    right_child_classification = node.y[node.X[:, best_col]>split_val, ]
+
+
+    node.set_left_child(left_child_attributes, left_child_classification)
+    node.set_right_child(right_child_attributes, right_child_classification)
+
+
+    return node
     
 
 
 def split_node(node, nmin, minleaf, nfeat):
 
 
-    if (nmin_check(node.y, nmin)):
+    if not (nmin_check(node.y, nmin)):
         return node
-    if (check_impurity(node.y) == 0):
+    if check_pure_node(node.y):
         return node
 
     cols = get_nfeat_cols(np.shape(node.X)[1], nfeat)
@@ -128,3 +169,8 @@ def split_node(node, nmin, minleaf, nfeat):
     split_node(node.right_child, nmin, minleaf, nfeat)
 
     return node
+
+
+credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
+
+tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)

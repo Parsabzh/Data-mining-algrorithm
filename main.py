@@ -98,13 +98,15 @@ def bestsplit(x_col, y, minleaf):
     bst_splt = None
     bst_imp = 999
 
+    length = len(x_col)
+
     # Loop over the split values to obtain the best
     for splt in splits:
 
         left = mat[mat[:,0] <= splt,1]
         right = mat[mat[:,0] > splt,1]
 
-        imp = ((len(left) / s) * impurity(left)) + ((len(right) / s) * impurity(right))
+        imp = ((len(left) / length) * impurity(left)) + ((len(right) / length) * impurity(right))
 
         if((imp < bst_imp) & nmin_check(left, minleaf) & nmin_check(right, minleaf)):
 
@@ -120,15 +122,14 @@ def tree_grow(X, y, nmin, minleaf, nfeat):
     node = split_node(node, nmin, minleaf, nfeat)
 
 def create_childs(node, best_col, split_val):
-    left_child_attributes = node.X[node.X[:, best_col]<split_val, ]
-    left_child_classification = node.y[node.X[:, best_col]<split_val, ]
-    right_child_attributes = node.X[node.X[:, best_col]>split_val, ]
-    right_child_classification = node.y[node.X[:, best_col]>split_val, ]
+    
+    X_left = node.X[node.X[:, best_col] <= split_val, ]
+    y_left = node.y[node.X[:, best_col]<= split_val, ]
+    X_right = node.X[node.X[:, best_col]>split_val, ]
+    y_right = node.y[node.X[:, best_col]>split_val, ]
 
-
-    node.set_left_child(left_child_attributes, left_child_classification)
-    node.set_right_child(right_child_attributes, right_child_classification)
-
+    node.set_left_child(X_left, y_left)
+    node.set_right_child(X_right, y_right)
 
     return node
     
@@ -148,10 +149,12 @@ def split_node(node, nmin, minleaf, nfeat):
     best_col = -1
     split_val_best = None
 
+    # print(cols)
+
     for i in cols:
 
-        temp_gini, split_val = bestsplit(node.X[i].copy(), node.y.copy(), minleaf)
-
+        temp_gini, split_val = bestsplit(node.X[:,i].copy(), node.y.copy(), minleaf)
+        
         if (best_gini > temp_gini):
             best_gini = temp_gini
             best_col = i
@@ -160,10 +163,12 @@ def split_node(node, nmin, minleaf, nfeat):
 
     if(best_gini == 999):
         return node
+    
 
     node.set_split_values(best_col, split_val_best)
 
-    node = create_childs(node, best_col, split_val)
+    node = create_childs(node, best_col, split_val_best)
+
 
     split_node(node.left_child, nmin, minleaf, nfeat)
     split_node(node.right_child, nmin, minleaf, nfeat)
@@ -171,6 +176,19 @@ def split_node(node, nmin, minleaf, nfeat):
     return node
 
 
+
+print("\n----------------------")
+print("START PROGRAM\n\n")
+
+
+
+
 credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 
+print(credit_data)
+
+print("\n \n")
+
+
 tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
+

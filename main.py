@@ -16,7 +16,7 @@ def nmin_check(obs, nmin):
     Returns:
         Boolean, returns true if there are more observations than nmin."""
 
-    if len(obs) > nmin:
+    if len(obs) >= nmin:
         return True
     else:
         return False

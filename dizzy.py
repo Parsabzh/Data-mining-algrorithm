@@ -37,19 +37,10 @@ def create_childs(node, best_col, split_val):
     right_child_attributes = node.X[node.X[:, best_col]>split_val, ]
     right_child_classification = node.y[node.X[:, best_col]>split_val, ]
 
-    print("left child attributes:")
-    print(left_child_attributes)
-    print("left_child classification")
-    print(left_child_classification)
-
-    print("right child attributes")
-    print(right_child_attributes)
-    print("right child classification")
-    print(right_child_classification)
 
     node.set_left_child(left_child_attributes, left_child_classification)
     node.set_right_child(right_child_attributes, right_child_classification)
-    print(node.left_child.X)
+
 
     return node
     
@@ -59,6 +50,5 @@ best_col = 3
 split_val = 55
 node = create_childs(node, best_col, split_val)
 
-print("============================")
 
 print(node.left_child.X)

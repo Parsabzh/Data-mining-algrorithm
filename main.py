@@ -1,5 +1,8 @@
+from unittest import result
 import numpy as np
 from node import Node
+from sklearn.metrics import confusion_matrix
+
 
 
 def nmin_check(obs, nmin):
@@ -176,7 +179,18 @@ def split_node(node, nmin, minleaf, nfeat):
 
     return node
 
-
+def tree_grow_b (X, y, nmin, minleaf, nfeat, m):
+    treelist = [] # empty list, to be filled with tree objects
+    merged_matrix = np.column_stack((X,y)) # merge X and y
+    for i in range(m):
+        num_rows = np.shape(merged_matrix)[0] # take nrows
+        bootstrap = np.random.choice(np.arange(0, num_rows), size=num_rows, replace=True) #bootstrap data
+        bootstrapped_data = merged_matrix[bootstrap,]
+        X = bootstrapped_data[:,:-1] # separate X and y
+        y = bootstrapped_data[:,-1]
+        tree_i = tree_grow(X, y, nmin, minleaf, nfeat) # create tree for bootstrapped data
+        treelist.append(tree_i) # append grown tree to list
+    return treelist
 
 def maj_vote(y):
     """Takes the majority vote of the data points in the leaf. If number of labels are 
@@ -194,23 +208,28 @@ def maj_vote(y):
 
 
 def tree_pred(x, tr):
+    return np.apply_along_axis(traverse_node, 1, x, tr)
 
-    return traverse_node(tr, x)
+def tree_pred_b(trees, x):
 
+    y_frame = np.array([]).reshape(len(x),0)
+    for tree in trees:
+        y = tree_pred(x.copy(), tree)
 
-def traverse_node(node, x):
+        y_frame = np.column_stack((y_frame, y))
+    
+    
+    return np.apply_along_axis(maj_vote, 1, y_frame)
+
+def traverse_node(x, node):
 
     if(node.left_child is None):
         return maj_vote(node.y)
 
     if(x[node.split_col_num] < node.split_number):
-        return traverse_node(node.left_child, x)
+        return traverse_node(x, node.left_child)
     else:
-        return traverse_node(node.right_child, x)
-    
-
-
-
+        return traverse_node(x, node.right_child)
 
 
 
@@ -221,17 +240,26 @@ print("START PROGRAM\n\n")
 
 
 
+indian_data = np.genfromtxt('indians.txt', delimiter=',')
 
-credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 
 # print(credit_data)
 
 print("\n \n")
 
 
-tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
+#tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
 
-res = tree_pred([25,0,1,32,0], tree)
-print(f"res: {res}")
+trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
 
-print( maj_vote(np.array([1,0])) )
+result = tree_pred(indian_data[:,:-1].copy(), trees)
+
+y_actu = indian_data[:,-1]
+y_pred = result
+print(confusion_matrix(y_actu, y_pred))
+
+
+# res = tree_pred([25,0,1,32,0], tree)
+# print(f"res: {res}")
+
+# print( maj_vote(np.array([1,0])) )

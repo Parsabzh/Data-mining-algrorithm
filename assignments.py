@@ -99,7 +99,7 @@ credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
 print(bst_imp, bst_splt)
 
-credit_data = np.genfromtxt('data_2.txt', delimiter=',', skip_header=True)
+# credit_data = np.genfromtxt('data_2.txt', delimiter=',', skip_header=True)
 
-bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
-print(bst_imp, bst_splt)
+# bst_imp, bst_splt = bestsplit(credit_data[:,3].copy(), credit_data[:,5].copy(), 2)
+# print(bst_imp, bst_splt)

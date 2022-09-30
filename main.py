@@ -195,18 +195,18 @@ def maj_vote(y):
 
 def tree_pred(x, tr):
 
-    return traverse_node(tr, x)
+    return np.apply_along_axis(traverse_node, 1, x, tr)
 
 
-def traverse_node(node, x):
+def traverse_node(x, node):
 
     if(node.left_child is None):
         return maj_vote(node.y)
 
     if(x[node.split_col_num] < node.split_number):
-        return traverse_node(node.left_child, x)
+        return traverse_node(x, node.left_child)
     else:
-        return traverse_node(node.right_child, x)
+        return traverse_node(x, node.right_child)
     
 
 
@@ -226,12 +226,11 @@ credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 
 # print(credit_data)
 
-print("\n \n")
 
 
 tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
 
-res = tree_pred([25,0,1,32,0], tree)
+res = tree_pred(credit_data[:,:5].copy(), tree)
 print(f"res: {res}")
 
 print( maj_vote(np.array([1,0])) )

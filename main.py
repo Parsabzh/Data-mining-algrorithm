@@ -245,7 +245,6 @@ indian_data = np.genfromtxt('indians.txt', delimiter=',')
 
 # print(credit_data)
 
-print("\n \n")
 
 
 #tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)

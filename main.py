@@ -1,6 +1,100 @@
 import numpy as np
 from node import Node
+from sklearn.metrics import confusion_matrix
 
+
+def tree_grow(X, y, nmin, minleaf, nfeat):
+    """
+    Main tree growing function.
+
+    Function that creates a node and begins the node splitting
+    procedure.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Attributes.
+    y : numpy.ndarray
+        Array of labels.
+    nmin : int
+        Parameter that sets the minimun number of observations required before splitting.
+    minleaf : int
+        Parameter that sets the minimum number of observations required after a split.
+    nfeat : int
+        Number of attributes that are considered for every split.
+
+    Returns
+    -------
+    Node
+        A decision tree
+    """
+
+    node = Node(X, y)
+    node = split_node(node, nmin, minleaf, nfeat)
+    return node
+
+def tree_pred(X, tr):
+    """
+    Main tree prediction function.
+
+    Function that, given a dataframe consisting of attributes, predicts 
+    the class (i.e., calls the row specific prediction function) for every row. 
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Attributes.
+    tr : Node
+        Tree object.
+
+    Returns
+    -------
+    numpy.ndarray
+        A vector containing the predicted labels.
+    """
+    return np.apply_along_axis(traverse_node, 1, X, tr)
+
+def tree_grow_b (X, y, nmin, minleaf, nfeat, m):
+    treelist = [] # empty list, to be filled with tree objects
+    merged_matrix = np.column_stack((X,y)) # merge X and y
+    for i in range(m):
+        num_rows = np.shape(merged_matrix)[0] # take nrows
+        bootstrap = np.random.choice(np.arange(0, num_rows), size=num_rows, replace=True) #bootstrap data
+        bootstrapped_data = merged_matrix[bootstrap,]
+        X = bootstrapped_data[:,:-1] # separate X and y
+        y = bootstrapped_data[:,-1]
+        tree_i = tree_grow(X, y, nmin, minleaf, nfeat) # create tree for bootstrapped data
+        treelist.append(tree_i) # append grown tree to list
+    return treelist
+
+def tree_pred_b(trees, x):
+    """
+    Tree ensemble method.
+
+    Function that, given an ensemble of trees, takes the majority
+    vote of all the predictions made by a single tree.
+    
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Attributes.
+    tr : Node
+        Tree object.
+
+    Returns
+    -------
+    numpy.ndarray
+        A vector containing the predicted labels.
+    """
+
+    y_frame = np.array([]).reshape(len(x),0)
+    for tree in trees:
+        y = tree_pred(x.copy(), tree)
+
+        y_frame = np.column_stack((y_frame, y))
+    
+    
+    return np.apply_along_axis(maj_vote, 1, y_frame)
 
 def nmin_check(obs, nmin):
 
@@ -52,7 +146,7 @@ def check_pure_node(arr):
     """Function that checks whether vector is pure, using the Gini index
 
     # Args:
-    # arr: column of an array of dataset
+    # arr : column of an array of dataset
 
     # Returns: Boolean."""
     result = np.all(arr == arr[0])
@@ -66,8 +160,8 @@ def get_nfeat_cols(num_cols, nfeat):
     """function that returns a random subset (size nfeat) of the number of columns of a dataframr. Nfeat cannot be larger than the number of columns
 
       Args:
-      total_col_nums: number of columns of a matrix/dataframe
-      nfeat: parameter that determines the number of features that will be used for determining a split of the data
+      total_col_nums : number of columns of a matrix/dataframe
+      nfeat : parameter that determines the number of features that will be used for determining a split of the data
 
       Returns:
       random subset of number of columns.
@@ -91,7 +185,7 @@ def bestsplit(x_col, y, minleaf):
         Array of attribute values.
     y : numpy.array
         Array of labels.
-    minleaf: int
+    minleaf : int
         Parameter that sets the minimum number of observations required after a split.
 
     Returns
@@ -132,35 +226,6 @@ def bestsplit(x_col, y, minleaf):
     
     return bst_imp, bst_splt
 
-def tree_grow(X, y, nmin, minleaf, nfeat):
-    """
-    Main tree growing function.
-
-    Function that creates a node and begins the node splitting
-    procedure.
-
-    Parameters
-    ----------
-    X : numpy.ndarray
-        Array of attribute values.
-    y : np.array
-        Array of labels.
-    minleaf: int
-        Parameter that sets the minimum number of observations required after a split.
-
-    Returns
-    -------
-    float
-        Lowest obtained gini value. 999 if nothing is found.
-    int
-        Split value that obtains the lowest gini impurity. None if not found.
-
-    """
-
-    node = Node(X, y)
-    node = split_node(node, nmin, minleaf, nfeat)
-    return node
-
 def create_childs(node, best_col, split_val):
     
     X_left = node.X[node.X[:, best_col] <= split_val, ]
@@ -174,6 +239,32 @@ def create_childs(node, best_col, split_val):
     return node
     
 def split_node(node, nmin, minleaf, nfeat):
+    """
+    Node splitting function.
+
+    Function that controls the growing of the tree. It splits a
+    certain node until the one of the criteria has been satisfied: 
+    (1) a node is pure, (2) there are less than nmin items or 
+    (3) no split can be found due to the minleaf constraint. A split is
+    found by iterating over the - by nfeat selected - columns using the
+    bestsplit function.
+
+    Parameters
+    ----------
+    node : Node
+        A Node object containing the data.
+    nmin : int
+        Parameter that sets the minimun number of observations required before splitting.
+    minleaf : int
+        Parameter that sets the minimum number of observations required after a split.
+    nfeat : int
+        Number of attributes that are considered for every split.
+
+    Returns
+    -------
+    Node
+        A Node object containing possibly many lower-level nodes.
+    """
 
 
     if not (nmin_check(node.y, nmin)):
@@ -199,49 +290,57 @@ def split_node(node, nmin, minleaf, nfeat):
 
     if(best_gini == 999):
         return node
-    
 
     node.set_split_values(best_col, split_val_best)
 
     node = create_childs(node, best_col, split_val_best)
-
-    # print(f"best col: {best_col}, split_val:{split_val_best}")
-    # print("left")
-    # print(node.left_child.X)
-    # print(node.left_child.y)
-    # print("right")
-    # print(node.right_child.X)
-    # print(node.right_child.y)
-
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
     split_node(node.left_child, nmin, minleaf, nfeat)
     split_node(node.right_child, nmin, minleaf, nfeat)
 
     return node
 
-
-
 def maj_vote(y):
-    """Takes the majority vote of the data points in the leaf. If number of labels are 
-    equal, 0 is chosen.
+    """
+    Majority vote.
 
-    Args:
-        y: Label values of the leaf
+    Function that calculates the majority vote in a given array. If there
+    are multiple classes with the same number, the first class (i.e., 0) is voted. 
 
-    Returns:
-        Most occuring class
-    
+    Parameters
+    ----------
+    y : numpy.array
+        Array of labels.
+
+    Returns
+    -------
+    int
+        The class of elected through majority vote.
     """
 
     return np.bincount(y.astype(int)).argmax()
 
-
-def tree_pred(x, tr):
-
-    return np.apply_along_axis(traverse_node, 1, x, tr)
-
-
 def traverse_node(x, node):
+    """
+    Search through the tree.
+
+    Function that searches through the tree to find the leaf 
+    node that fits the parameters in the x vector. Using the node 
+    parameters, it decides to continue in the left or right node 
+    until a leaf node is found.
+    
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Vector of attributes; a single row from X.
+    node : Node
+        (Partial) tree object.
+
+    Returns
+    -------
+    numpy.ndarray
+        A vector containing the predicted labels.
+    """
 
     if(node.left_child is None):
         return maj_vote(node.y)
@@ -250,33 +349,27 @@ def traverse_node(x, node):
         return traverse_node(x, node.left_child)
     else:
         return traverse_node(x, node.right_child)
-    
 
 
 
 
 
+print("----------------------")
+print("START PROGRAM\n")
 
 
-
-print("\n----------------------")
-print("START PROGRAM\n\n")
-
-
-
-
-credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
-
-# print(credit_data)
+######## Testing for the hint for a single tree
+# indian_data = np.genfromtxt('indians.txt', delimiter=',')
+# trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
+# y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
+# y_actu = indian_data[:,-1]
+# print(confusion_matrix(y_actu, y_pred))
 
 
-print(type(credit_data[:,:5]))
-print(type(credit_data[:,5].copy()))
-print(credit_data[:,5].copy())
-exit(0)
-tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
+######## PART 2 
+# train_data = np.genfromtxt('eclipse-metrics-packages-2.0.csv', delimiter=';', skip_header=True)
+# test_data = np.genfromtxt('eclipse-metrics-packages-2.0.csv', delimiter=';', skip_header=True)
+# print(train_data.shape)
+# print(test_data.shape)
 
-res = tree_pred(credit_data[:,:5].copy(), tree)
-print(f"res: {res}")
 
-print( maj_vote(np.array([1,0])) )

@@ -21,14 +21,22 @@ def nmin_check(obs, nmin):
 
 def impurity(arr):
     """
-    Function that checks the impurity of a vector, using the Gini index
+    Checks impurity.
 
-    # Args:
-    # arr: column of an array of dataset
+    This function calculates the impurity of a given node using the 
+    Gini index. We use the formula for binary problems provided in the 
+    lecture slides: i(t) = p(0|t)p(1|t).
 
-    # Returns:impurity
-    # impurity.
-    # """
+    Parameters
+    ----------
+    arr : numpy.array
+        Array of labels.
+
+    Returns
+    -------
+    float
+        The impurity of the given array.
+    """
 
     size = len(arr)
 
@@ -71,17 +79,29 @@ def get_nfeat_cols(num_cols, nfeat):
         return np.sort(cols_nfeat)
 
 def bestsplit(x_col, y, minleaf):
-    """Given a single column, it finds the best split value with the lowest impurity.
-    Note that it does not work if there is only a single row in the input X.
 
-    Args:
-        x_col: column from the X data matrix
-        y: The labels of the data set.
-        minleaf: parameter that sets the minimum number of observations in data required to make a split
+    """
+    Finds the best split in column.
 
-    Returns:
-        bst_imp: lowest obtained gini value. 999 if nothing is found.
-        bst_splt: split value that obtains the lowest gini impurity. None if not found."""
+    Given a single column, it finds the best split value with the lowest impurity.
+
+    Parameters
+    ----------
+    x_col : numpy.array
+        Array of attribute values.
+    y : numpy.array
+        Array of labels.
+    minleaf: int
+        Parameter that sets the minimum number of observations required after a split.
+
+    Returns
+    -------
+    float
+        Lowest obtained gini value. 999 if nothing is found.
+    int
+        Split value that obtains the lowest gini impurity. None if not found.
+
+    """
 
     # Find the split values
     x_col_sor = np.sort(np.unique(x_col))
@@ -113,6 +133,29 @@ def bestsplit(x_col, y, minleaf):
     return bst_imp, bst_splt
 
 def tree_grow(X, y, nmin, minleaf, nfeat):
+    """
+    Main tree growing function.
+
+    Function that creates a node and begins the node splitting
+    procedure.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Array of attribute values.
+    y : np.array
+        Array of labels.
+    minleaf: int
+        Parameter that sets the minimum number of observations required after a split.
+
+    Returns
+    -------
+    float
+        Lowest obtained gini value. 999 if nothing is found.
+    int
+        Split value that obtains the lowest gini impurity. None if not found.
+
+    """
 
     node = Node(X, y)
     node = split_node(node, nmin, minleaf, nfeat)
@@ -227,7 +270,10 @@ credit_data = np.genfromtxt('data.txt', delimiter=',', skip_header=True)
 # print(credit_data)
 
 
-
+print(type(credit_data[:,:5]))
+print(type(credit_data[:,5].copy()))
+print(credit_data[:,5].copy())
+exit(0)
 tree = tree_grow(credit_data[:,:5].copy(), credit_data[:,5].copy(), 2, 1, 5)
 
 res = tree_pred(credit_data[:,:5].copy(), tree)

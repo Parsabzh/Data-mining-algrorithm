@@ -55,6 +55,31 @@ def tree_pred(X, tr):
     return np.apply_along_axis(traverse_node, 1, X, tr)
 
 def tree_grow_b (X, y, nmin, minleaf, nfeat, m):
+    """
+    Random forest function.
+
+    Function that creates several decision trees with bootstrapped data.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Attributes.
+    y : numpy.ndarray
+        Array of labels.
+    nmin : int
+        Parameter that sets the minimun number of observations required before splitting.
+    minleaf : int
+        Parameter that sets the minimum number of observations required after a split.
+    nfeat : int
+        Number of attributes that are considered for every split.
+    m : int
+        Number of trees to be created.
+
+    Returns
+    -------
+    np.array
+        A list filled with decision trees
+    """
     treelist = [] # empty list, to be filled with tree objects
     merged_matrix = np.column_stack((X,y)) # merge X and y
     for i in range(m):
@@ -98,15 +123,24 @@ def tree_pred_b(trees, x):
 
 def nmin_check(obs, nmin):
 
-    """checks if y has more that nmin values. If not, node must not be splitted and tree will not
-   be grown further. boolean output.
+    """
+    nmin check function.
 
-    Args:
-        obs: column of an array of dataset
-        nmin: parameter that sets the minimum number of observations in data required to make a split
+    Function that checks whether the number of observations is greater than nmin.
 
-    Returns:
-        Boolean, returns true if there are more observations than nmin."""
+    Parameters
+    ----------
+    obs : numpy.ndarray
+        Attributes.
+    nmin : int
+        Parameter that sets the minimun number of observations required before splitting.
+    
+
+    Returns
+    -------
+    Boolean
+        True if there are more observations to the chosen parameter
+    """
 
     if len(obs) >= nmin:
         return True
@@ -143,11 +177,23 @@ def impurity(arr):
 
 def check_pure_node(arr):
 
-    """Function that checks whether vector is pure, using the Gini index
+    """
+    Checks whether the node is pure.
 
-    # Args:
-    # arr : column of an array of dataset
+    This function calculates whether a given node is pure, using the gini index as a measure of impurity 
+    Gini index. We use the formula for binary problems provided in the 
+    lecture slides: i(t) = p(0|t)p(1|t).
 
+    Parameters
+    ----------
+    arr : numpy.array
+        Array of labels.
+
+    Returns
+    -------
+    Boolean
+        True if node is pure, False if not pure.
+    """
     # Returns: Boolean."""
     result = np.all(arr == arr[0])
     if result:
@@ -157,15 +203,24 @@ def check_pure_node(arr):
 
 def get_nfeat_cols(num_cols, nfeat):
 
-    """function that returns a random subset (size nfeat) of the number of columns of a dataframr. Nfeat cannot be larger than the number of columns
+    """
+    Selects a random subset of columns.
 
-      Args:
-      total_col_nums : number of columns of a matrix/dataframe
-      nfeat : parameter that determines the number of features that will be used for determining a split of the data
+    This function selects a random subset of the number of columns, with size of the parameter nfeat.
 
-      Returns:
-      random subset of number of columns.
-      """
+    Parameters
+    ----------
+    num_cols : int
+        Integer representing the number of columns of an array.
+    
+    nfeat : int
+        Integer representing a parameter for the number of attributes to be used for determining a split.
+
+    Returns
+    -------
+    np.array
+        a sorted list of random drawn integers between 0 and the number of columns.
+    """
     if nfeat > num_cols:
         print("nfeat cannot be larger than the number of attributes")
     else:
@@ -227,6 +282,27 @@ def bestsplit(x_col, y, minleaf):
     return bst_imp, bst_splt
 
 def create_childs(node, best_col, split_val):
+
+    """
+    Child node creating function.
+
+    Given a node and the information on which an optimal split can be made, this function splits the data in a left and a right child node.
+
+    Parameters
+    ----------
+    node : node
+        A node containing the data.
+    best_col : int
+        integer representing the attribute on which to split the data.
+    split_val : int
+        the value of the attribute in the column best_col to split the data on.
+
+    Returns
+    -------
+    node
+        node with a created left and right child node.
+
+    """
     
     X_left = node.X[node.X[:, best_col] <= split_val, ]
     y_left = node.y[node.X[:, best_col]<= split_val, ]

@@ -1,7 +1,61 @@
 import numpy as np
-from node import Node
 from sklearn.metrics import confusion_matrix
 
+class Node:
+    """
+    A class used to build the tree structure. Every node holds
+    possibly existing underlying nodes.
+
+    ...
+
+    Attributes
+    ----------
+    X : numpy.ndarray
+        Attributes
+    y : numpy.ndarray
+        Labels
+    left_child : Node
+        Left subtree
+    right_child : Node
+        Right subtree
+    split_col_num : int
+        Column on which the split is performed.
+    split_number : float
+        Value that is used to split the data on.
+
+
+    Methods
+    -------
+    set_split_values(split_col_num, split_number)
+        Setter function that is called after split column and 
+        value have been determined.
+    set_left_child(X, y)
+        Setter function that sets the left child tree.
+    set_right_child(X, y)
+        Setter function that sets the right child tree.
+    """
+
+    def __init__(self, X, y) -> None:
+
+        self.X = X
+        self.y = y
+        self.left_child = None
+        self.right_child = None
+        self.split_col_num = None
+        self.split_number = None
+    
+    def set_split_values(self, split_col_num, split_number):
+
+        self.split_col_num = split_col_num
+        self.split_number = split_number
+    
+    def set_left_child(self, X, y):
+
+        self.left_child =  Node(X, y)
+    
+    def set_right_child(self, X, y):
+
+        self.right_child =  Node(X, y)
 
 def tree_grow(X, y, nmin, minleaf, nfeat):
     """
@@ -80,16 +134,18 @@ def tree_grow_b (X, y, nmin, minleaf, nfeat, m):
     np.array
         A list filled with decision trees
     """
-    treelist = [] # empty list, to be filled with tree objects
-    merged_matrix = np.column_stack((X,y)) # merge X and y
+    treelist = []
+    merged_matrix = np.column_stack((X,y))
+    
     for i in range(m):
-        num_rows = np.shape(merged_matrix)[0] # take nrows
-        bootstrap = np.random.choice(np.arange(0, num_rows), size=num_rows, replace=True) #bootstrap data
+        num_rows = np.shape(merged_matrix)[0]
+        bootstrap = np.random.choice(np.arange(0, num_rows), size=num_rows, replace=True)
         bootstrapped_data = merged_matrix[bootstrap,]
-        X = bootstrapped_data[:,:-1] # separate X and y
+        X = bootstrapped_data[:,:-1]
         y = bootstrapped_data[:,-1]
-        tree_i = tree_grow(X, y, nmin, minleaf, nfeat) # create tree for bootstrapped data
-        treelist.append(tree_i) # append grown tree to list
+        tree_i = tree_grow(X, y, nmin, minleaf, nfeat)
+        treelist.append(tree_i)
+    
     return treelist
 
 def tree_pred_b(trees, x):
@@ -435,11 +491,11 @@ print("START PROGRAM\n")
 
 
 ######## Testing for the hint for a single tree
-# indian_data = np.genfromtxt('indians.txt', delimiter=',')
-# trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
-# y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
-# y_actu = indian_data[:,-1]
-# print(confusion_matrix(y_actu, y_pred))
+indian_data = np.genfromtxt('indians.txt', delimiter=',')
+trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
+y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
+y_actu = indian_data[:,-1]
+print(confusion_matrix(y_actu, y_pred))
 
 
 ######## PART 2 

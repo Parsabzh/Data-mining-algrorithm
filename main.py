@@ -1,5 +1,7 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix
+import pandas as pd
+from sklearn.metrics import confusion_matrix, classification_report
+import time
 
 class Node:
     """
@@ -157,10 +159,10 @@ def tree_pred_b(trees, x):
     
     Parameters
     ----------
+    trees : Node
+        Ensemble of trees.
     X : numpy.ndarray
         Attributes.
-    tr : Node
-        Tree object.
 
     Returns
     -------
@@ -449,7 +451,9 @@ def maj_vote(y):
     int
         The class of elected through majority vote.
     """
-
+    # print(y)
+    # print(np.bincount(y.astype(int)).argmax())
+    # exit(1)
     return np.bincount(y.astype(int)).argmax()
 
 def traverse_node(x, node):
@@ -491,17 +495,80 @@ print("START PROGRAM\n")
 
 
 ######## Testing for the hint for a single tree
-indian_data = np.genfromtxt('indians.txt', delimiter=',')
-trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
-y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
-y_actu = indian_data[:,-1]
-print(confusion_matrix(y_actu, y_pred))
+# indian_data = np.genfromtxt('indians.txt', delimiter=',')
+# trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
+# y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
+# y_actu = indian_data[:,-1]
+# print(confusion_matrix(y_actu, y_pred))
+
+######## Testing ensemble
+# indian_data = np.genfromtxt('indians.txt', delimiter=',')
+# trees = tree_grow_b(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8, 10)
+# y_pred = tree_pred_b(trees, indian_data[:,:-1].copy())
+# y_actu = indian_data[:,-1]
+# print(confusion_matrix(y_actu, y_pred))
 
 
 ######## PART 2 
-# train_data = np.genfromtxt('eclipse-metrics-packages-2.0.csv', delimiter=';', skip_header=True)
-# test_data = np.genfromtxt('eclipse-metrics-packages-2.0.csv', delimiter=';', skip_header=True)
-# print(train_data.shape)
-# print(test_data.shape)
+### Retrieve data
+feat = ['pre']
+init_feat = ['FOUT', 'MLOC', 'NBD', 'PAR', 'VG', 
+             'NOF', 'NOM', 'NSF', 'NSM', 'ACD',
+             'NOI', 'NOT', 'TLOC']
+
+for ft in init_feat:
+
+    feat.append(ft + '_avg')
+    feat.append(ft + '_max')
+    feat.append(ft + '_sum')
+
+feat.append('NOCU')
+
+# has_defects is true if more than 0 post-release bugs have been found
+feat.append('has_defects') 
 
 
+train_data = (pd.read_csv('eclipse-metrics-packages-2.0.csv', delimiter=';')
+              .assign(has_defects=lambda x: 1 * (x['post']>0)) 
+              .pipe(lambda x: x.loc[:,feat])
+              .to_numpy()
+             )
+
+test_data = (pd.read_csv('eclipse-metrics-packages-3.0.csv', delimiter=';')
+              .assign(has_defects=lambda x: 1 * (x['post']>0))
+              .pipe(lambda x: x.loc[:,feat])
+              .to_numpy()
+             )
+
+X_train = train_data[:,:-1]
+y_train = train_data[:,-1]
+
+X_test = test_data[:,:-1]
+y_test = test_data[:,-1]
+
+### Exercise 2.1
+# tree = tree_grow(X_train.copy(), y_train.copy(), 15, 5, 41)
+# y_pred = tree_pred(X_test.copy(), tree)
+# print(f"Confusion matrix:\n{confusion_matrix(y_test, y_pred)}")
+# print(classification_report(y_test, y_pred))
+
+
+### Exercise 2.2 Bagging
+# start = time.time()
+
+# trees = tree_grow_b(X_train.copy(), y_train.copy(), 15, 5, 41, 100)
+# y_pred = tree_pred_b(trees, X_test.copy())
+
+# print(f"2.2 Bagging\nconfusion matrix:\n {confusion_matrix(y_test, y_pred)}")
+# print(classification_report(y_test, y_pred))
+# print(f"Total time elapsed: {time.time() - start}")
+
+### Exercise 2.3 Random Forest
+start = time.time()
+
+trees = tree_grow_b(X_train.copy(), y_train.copy(), 15, 5, 6, 100)
+y_pred = tree_pred_b(trees, X_test.copy())
+
+print(f"2.3 Random Forest\nconfusion matrix:\n{confusion_matrix(y_test, y_pred)}")
+print(classification_report(y_test, y_pred))
+print(f"Total time elapsed: {time.time() - start}")

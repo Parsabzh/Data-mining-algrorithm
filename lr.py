@@ -25,7 +25,7 @@ def create_dataset():
                     for file in os.listdir(child.path+r'\fold{}'.format(n)):
                         if file.endswith(".txt"):
                             with open(child.path+r'\fold{}'.format(n)+"\\"+file) as f:
-                                lines=f.readlines()
+                                lines=f.read()
                                 lst_comment.append(lines)
                                 lst_class.append('deceptive')
         lst_type.clear()                        
@@ -48,7 +48,7 @@ def create_dataset():
                     for file in os.listdir(child.path+r'\fold{}'.format(n)):
                         if file.endswith(".txt"):
                             with open(child.path+r'\fold{}'.format(n)+"\\"+file) as f:
-                                lines=f.readlines()
+                                lines=f.read()
                                 lst_comment.append(lines)
                                 lst_class.append('truthful')   
         lst_type.clear()
@@ -75,9 +75,10 @@ def vectorize(dt):
     features = pd.DataFrame(vectorizer.fit_transform(dt['comment'].values).toarray().astype(np.float32)).values
     labels=encode_label(dt['class'])
      #prepare dataset
-    dt['fearures']=features
+    
     return dt
 dt= create_dataset()
+print(dt['comment'])
 dt=vectorize(dt)
 # x_train=dt_train['comment']
 # y_train=dt_train['class']

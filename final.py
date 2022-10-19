@@ -1,7 +1,4 @@
 import numpy as np
-import pandas as pd
-from sklearn.metrics import confusion_matrix, classification_report
-import time
 
 class Node:
     """
@@ -84,15 +81,10 @@ def tree_grow(X, y, nmin, minleaf, nfeat):
     Node
         A decision tree
     """
-    print(f"total: {np.bincount(y.astype(int))}")
 
     node = Node(X, y)
-    node = split_node(node, nmin, minleaf, nfeat)
+    return split_node(node, nmin, minleaf, nfeat)
 
-    print(node.split_number, node.split_col_num)
-    print(node.left_child.split_number, node.left_child.split_col_num)
-
-    return node
 
 def tree_pred(X, tr):
     """
@@ -284,11 +276,8 @@ def get_nfeat_cols(num_cols, nfeat):
     np.array
         a sorted list of random drawn integers between 0 and the number of columns.
     """
-    if nfeat > num_cols:
-        print("nfeat cannot be larger than the number of attributes")
-    else:
-        cols_nfeat = np.random.choice(np.arange(0, num_cols), size=nfeat, replace=False)
-        return np.sort(cols_nfeat)
+    cols_nfeat = np.random.choice(np.arange(0, num_cols), size=nfeat, replace=False)
+    return np.sort(cols_nfeat)
 
 def bestsplit(x_col, y, minleaf):
 
@@ -371,8 +360,6 @@ def create_childs(node, best_col, split_val):
     y_left = node.y[node.X[:, best_col]<= split_val, ]
     X_right = node.X[node.X[:, best_col]>split_val, ]
     y_right = node.y[node.X[:, best_col]>split_val, ]
-
-    print(f"Left: {np.bincount(y_left.astype(int))}, Right: {np.bincount(y_right.astype(int))}")
 
     node.set_left_child(X_left, y_left)
     node.set_right_child(X_right, y_right)
@@ -489,97 +476,3 @@ def traverse_node(x, node):
         return traverse_node(x, node.left_child)
     else:
         return traverse_node(x, node.right_child)
-
-
-
-
-
-print("----------------------")
-print("START PROGRAM\n")
-
-
-######## Testing for the hint for a single tree
-# indian_data = np.genfromtxt('indians.txt', delimiter=',')
-# trees = tree_grow(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8)
-# y_pred = tree_pred(indian_data[:,:-1].copy(), trees)
-# y_actu = indian_data[:,-1]
-# print(confusion_matrix(y_actu, y_pred))
-
-######## Testing ensemble
-# indian_data = np.genfromtxt('indians.txt', delimiter=',')
-# trees = tree_grow_b(indian_data[:,:-1].copy(), indian_data[:,-1].copy(), 20, 5, 8, 10)
-# y_pred = tree_pred_b(trees, indian_data[:,:-1].copy())
-# y_actu = indian_data[:,-1]
-# print(confusion_matrix(y_actu, y_pred))
-
-
-######## PART 2 
-### Retrieve data
-feat = ['pre']
-init_feat = ['FOUT', 'MLOC', 'NBD', 'PAR', 'VG', 
-             'NOF', 'NOM', 'NSF', 'NSM', 'ACD',
-             'NOI', 'NOT', 'TLOC']
-
-for ft in init_feat:
-
-    feat.append(ft + '_avg')
-    feat.append(ft + '_max')
-    feat.append(ft + '_sum')
-
-feat.append('NOCU')
-
-# has_defects is true if more than 0 post-release bugs have been found
-feat.append('has_defects') 
-
-
-train_data = (pd.read_csv('eclipse-metrics-packages-2.0.csv', delimiter=';')
-              .assign(has_defects=lambda x: 1 * (x['post']>0)) 
-              .pipe(lambda x: x.loc[:,feat])
-              .to_numpy()
-             )
-
-test_data = (pd.read_csv('eclipse-metrics-packages-3.0.csv', delimiter=';')
-              .assign(has_defects=lambda x: 1 * (x['post']>0))
-              .pipe(lambda x: x.loc[:,feat])
-              .to_numpy()
-             )
-
-
-# print(f"0 = {train_data.columns[0]}")
-# print(f"14 = {train_data.columns[14]}")
-
-# exit(0)
-
-X_train = train_data[:,:-1]
-y_train = train_data[:,-1]
-
-X_test = test_data[:,:-1]
-y_test = test_data[:,-1]
-
-
-### Exercise 2.1
-tree = tree_grow(X_train.copy(), y_train.copy(), 15, 5, 41)
-y_pred = tree_pred(X_test.copy(), tree)
-print(f"2.2 Decision tree\nConfusion matrix:\n{confusion_matrix(y_test, y_pred)}")
-print(classification_report(y_test, y_pred))
-
-
-### Exercise 2.2 Bagging
-# start = time.time()
-
-# trees = tree_grow_b(X_train.copy(), y_train.copy(), 15, 5, 41, 100)
-# y_pred = tree_pred_b(trees, X_test.copy())
-
-# print(f"2.2 Bagging\nconfusion matrix:\n {confusion_matrix(y_test, y_pred)}")
-# print(classification_report(y_test, y_pred))
-# print(f"Total time elapsed: {time.time() - start}")
-
-### Exercise 2.3 Random Forest
-# start = time.time()
-
-# trees = tree_grow_b(X_train.copy(), y_train.copy(), 15, 5, 6, 100)
-# y_pred = tree_pred_b(trees, X_test.copy())
-
-# print(f"2.3 Random Forest\nconfusion matrix:\n{confusion_matrix(y_test, y_pred)}")
-# print(classification_report(y_test, y_pred))
-# print(f"Total time elapsed: {time.time() - start}")

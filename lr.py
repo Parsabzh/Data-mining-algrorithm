@@ -1,10 +1,8 @@
 import os
-import glob
 from sklearn.base import _pprint
 from sklearn.linear_model import LogisticRegression
 import pandas as pd 
 from sklearn.feature_extraction.text import CountVectorizer
-import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -114,28 +112,22 @@ dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' 
 
 dt = dt.drop(['original_file'], axis=1)
 
-print(dt.head)
 dt.to_csv('converted.csv')
 
 X_train = dt.loc[dt['set_type'] == 'train', ~dt.columns.isin(['class_label', 'set_type'])]
 y_train = dt.loc[dt['set_type'] == 'train', dt.columns.isin(['class_label'])]
 
+
+
+
+
 X_test = dt.loc[dt['set_type'] == 'test', ~dt.columns.isin(['class_label', 'set_type'])]
 y_test = dt.loc[dt['set_type'] == 'test', dt.columns.isin(['class_label'])]
-
-print(y_test)
 
 
 
 print(len(dt))
 
 
-
-
-# x_train=dt_train['comment']
-# y_train=dt_train['class']
-# lr=LogisticRegression(penalty="l2")
-# lr.fit(x_train,y_train)
-# print(lr.score())
 
 

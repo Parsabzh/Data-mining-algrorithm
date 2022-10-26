@@ -16,8 +16,6 @@ score=model.score(X_train,y_train.values.ravel())
 print(score)
 
 def objective(trial):
-    classifier_name = trial.suggest_categorical("classifier", ["RandomForest"])
-    
     rf_n_estimators = trial.suggest_int("rf_n_estimators", 10, 1000)
     rf_max_depth = trial.suggest_int("rf_max_depth", 2, 32, log=True)
     classifier_obj = RandomForestClassifier(

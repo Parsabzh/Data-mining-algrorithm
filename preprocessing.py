@@ -40,10 +40,15 @@ def split_data(dt):
 if __name__ == "__main__":
 
     dt = pd.read_csv('original.csv')
+    
     dt = vectorize(dt, ngram_range=(1,5))
-
+    
     dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' else 1)
 
+    
+
     dt = dt.drop(['original_file'], axis=1)
+
+    print(dt)
 
     dt.to_csv('converted.csv', index=False)

@@ -11,9 +11,9 @@ class StemmedCountVectorizer(CountVectorizer):
 
 
 
-def vectorize(dt, min_df=5, ngram_range=(1,2)):
+def vectorize(dt, min_df=5, ngram_range=(1,2), binary=False):
 
-    vectorizer = StemmedCountVectorizer(min_df=min_df, encoding='latin-1', ngram_range=ngram_range, stop_words='english')
+    vectorizer = StemmedCountVectorizer(min_df=min_df, encoding='latin-1', ngram_range=ngram_range, stop_words='english', binary=binary)
 
     vec = vectorizer.fit_transform(dt['comment']).toarray()
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     dt = pd.read_csv('original.csv')
     
-    dt = vectorize(dt, ngram_range=(1,5))
+    dt = vectorize(dt, ngram_range=(1,2), binary=True, min_df=2)
     
     dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' else 1)
 

@@ -118,9 +118,6 @@ X_train = dt.loc[dt['set_type'] == 'train', ~dt.columns.isin(['class_label', 'se
 y_train = dt.loc[dt['set_type'] == 'train', dt.columns.isin(['class_label'])]
 
 
-
-
-
 X_test = dt.loc[dt['set_type'] == 'test', ~dt.columns.isin(['class_label', 'set_type'])]
 y_test = dt.loc[dt['set_type'] == 'test', dt.columns.isin(['class_label'])]
 

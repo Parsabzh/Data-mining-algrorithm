@@ -83,48 +83,12 @@ def create_dataset():
         n=n+1
     return df.reset_index()
 
-def vectorize(dt):
-    #vectorize feactures and labels to change the text to the number
-    
-    vectorizer = CountVectorizer(min_df=5, encoding='latin-1', ngram_range=(1, 2), stop_words='english')
 
-    vec = vectorizer.fit_transform(dt['comment']).toarray()#.astype(np.float32)
-
-    vectorized = pd.DataFrame(data=vec, columns=vectorizer.get_feature_names_out())
-
-    vectorized.insert(0, 'class_label', dt['class'])
-    vectorized.insert(1, 'set_type', dt['type'])
-    vectorized.insert(2, 'original_file', dt['filename'])
-
-    return vectorized
+if __name__ == "__main__":
 
 
+    dt = create_dataset()
+    dt = dt.drop(['index'], axis=1)
 
-# dt = create_dataset()
-
-# dt.to_csv('original.csv')
-
-
-dt = pd.read_csv('original.csv')
-dt = vectorize(dt)
-
-dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' else 1)
-
-dt = dt.drop(['original_file'], axis=1)
-
-dt.to_csv('converted.csv')
-
-X_train = dt.loc[dt['set_type'] == 'train', ~dt.columns.isin(['class_label', 'set_type'])]
-y_train = dt.loc[dt['set_type'] == 'train', dt.columns.isin(['class_label'])]
-
-
-X_test = dt.loc[dt['set_type'] == 'test', ~dt.columns.isin(['class_label', 'set_type'])]
-y_test = dt.loc[dt['set_type'] == 'test', dt.columns.isin(['class_label'])]
-
-
-
-print(len(dt))
-
-
-
+    dt.to_csv('data/original.csv', index=False)
 

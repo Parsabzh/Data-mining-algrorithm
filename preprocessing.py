@@ -28,8 +28,10 @@ def vectorize(dt, min_df=5, ngram_range=(1,2), binary=False):
 
 def split_data(dt):
 
+
     X_train = dt.loc[dt['set_type'] == 'train', ~dt.columns.isin(['set_type'])]
     y_train = X_train.pop('class_label')
+
 
     X_test = dt.loc[dt['set_type'] == 'test', ~dt.columns.isin(['set_type'])]
     y_test = X_test.pop('class_label')
@@ -39,16 +41,15 @@ def split_data(dt):
 
 if __name__ == "__main__":
 
-    dt = pd.read_csv('original.csv')
+    dt = pd.read_csv('data/original.csv')
     
-    dt = vectorize(dt, ngram_range=(1,2), binary=True, min_df=2)
+    dt = vectorize(dt, ngram_range=(1,3), binary=False, min_df=5)
     
     dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' else 1)
 
-    
-
     dt = dt.drop(['original_file'], axis=1)
 
-    print(dt)
+    print(f"\npreprocessing produced a csv with dimennsions:\n{dt.shape}")
 
-    dt.to_csv('converted.csv', index=False)
+
+    dt.to_csv('data/converted.csv', index=False)

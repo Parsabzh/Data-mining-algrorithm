@@ -12,7 +12,7 @@ from sklearn.model_selection import cross_val_score
 
 np.random.seed(0)
 
-dt = pd.read_csv('converted.csv')
+dt = pd.read_csv('data/converted.csv')
 # print(dt)
 
 
@@ -28,8 +28,8 @@ mutual_info = mutual_info.sort_values(ascending=False)
 
 print("ready with  generating mutual info: \n\n")
 
-# feats = [*range(5, len(mutual_info)-1, 5)]
-feats = [*range(5, 5000, 5)]
+feats = [*range(5, len(mutual_info)-1, 5)]
+# feats = [*range(5, 5000, 5)]
 
 scores = []
 
@@ -69,7 +69,7 @@ result.to_csv('nb_cv_results.csv')
 
 
 
-# selected = mutual_info[:len(mutual_info)]
+# selected = mutual_info[:140]
 
 # clf_nb = MultinomialNB()
 

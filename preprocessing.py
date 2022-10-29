@@ -10,6 +10,20 @@ class StemmedCountVectorizer(CountVectorizer):
         return lambda doc: ([french_stemmer.stem(w) for w in analyzer(doc)])
 
 
+def create_CV():
+
+    df = pd.read_csv('data/original.csv')
+
+    df = df.loc[df['type'] == 'train', :].reset_index()
+
+    myCViterator = []
+    for i in range(1,5):
+        trainIndices = df[(df['fold']!=i) & (df['type'] == 'train')].index.values.astype(int)
+        testIndices =  df[(df['fold']==i) & (df['type'] == 'train')].index.values.astype(int)
+        myCViterator.append( (trainIndices, testIndices) )
+
+    return myCViterator
+
 
 def vectorize(dt, min_df=5, ngram_range=(1,2), binary=False):
 
@@ -41,15 +55,28 @@ def split_data(dt):
 
 if __name__ == "__main__":
 
+
+    binary_val = True
+    ngram_val = (1,2)
     dt = pd.read_csv('data/original.csv')
     
-    dt = vectorize(dt, ngram_range=(1,3), binary=False, min_df=5)
+    dt = vectorize(dt, ngram_range=ngram_val, binary=binary_val, min_df=3)
     
     dt['class_label'] = dt['class_label'].transform(lambda x: 0 if x == 'deceptive' else 1)
 
-    dt = dt.drop(['original_file'], axis=1)
+    dt = dt.drop(['original_file', 'fold'], axis=1)
 
     print(f"\npreprocessing produced a csv with dimennsions:\n{dt.shape}")
 
+    if binary_val == True:
+        binary_print = "binary"
+    else:
+        binary_print = "count"
 
-    dt.to_csv('data/converted.csv', index=False)
+    if ngram_val == (1,1):
+        ngram_print = "unigram"
+    else:
+        ngram_print = "bigram"
+
+
+    dt.to_csv(f"data/converted_{binary_print}_{ngram_print}.csv", index=False)

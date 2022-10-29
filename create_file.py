@@ -22,6 +22,7 @@ def create_dataset():
         lst_class=[]
         lst_type=[]
         lst_file=[]
+        lst_fold=[]
 
         for child in os.scandir(path):
             if 'deceptive' in child.path:
@@ -33,18 +34,19 @@ def create_dataset():
                                 lst_comment.append(lines)
                                 lst_class.append('deceptive')
                                 lst_file.append(file)
+                                lst_fold.append(n)
         lst_type.clear()    
         if n==5:
             for i in range(len(lst_class)):
                 lst_type.append("test")
             # dt=pd.DataFrame(pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type}))
-            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file})))
+            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file, 'fold':lst_fold})))
         else:
             
             for i in range(len(lst_class)):
                 lst_type.append("train")
             # dt=pd.DataFrame(pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type}))
-            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file})))
+            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file, 'fold':lst_fold})))
 
         n=n+1
     n=1
@@ -55,6 +57,8 @@ def create_dataset():
         lst_class=[]
         lst_type=[]
         lst_file=[]
+        lst_fold=[]
+
 
         for child in os.scandir(path):
             if 'truthful' in child.path:
@@ -65,19 +69,20 @@ def create_dataset():
                                 lst_comment.append(lines)
                                 lst_class.append('truthful')
                                 lst_file.append(file)
-   
+                                lst_fold.append(n)
+
         lst_type.clear()
         if n==5:
             for i in range(0,len(lst_class)):
                 lst_type.append("test")
             # dt=pd.DataFrame(pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type}))
-            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file})))
+            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file, 'fold':lst_fold})))
 
         else:
             for i in range(0,len(lst_class)):
                 lst_type.append("train")
             # dt=pd.DataFrame(pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type}))
-            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file})))
+            df = pd.concat((df, pd.DataFrame({'class':lst_class,'comment':lst_comment,'type':lst_type, 'filename':lst_file, 'fold':lst_fold})))
 
 
         n=n+1

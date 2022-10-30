@@ -2,17 +2,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.tree import DecisionTreeClassifier
-
-
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from sklearn.feature_selection import mutual_info_classif
 
 from copy import deepcopy
-from preprocessing import split_data, create_CV
+from preprocessing import split_data
 import pandas as pd
-import optuna
-from sklearn.metrics import confusion_matrix, classification_report, precision_recall_fscore_support, accuracy_score
-import numpy as np
-from sklearn.feature_selection import mutual_info_classif
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+
 
 def calculate_mut_info(X_train_bin,y_train_bin):
 
@@ -63,8 +59,8 @@ classifiers = { 'naive_bayes':
                     },
                 'random_forest':
                     {
-                        'unigram': RandomForestClassifier(max_depth=None, n_estimators=100,max_features=30),
-                        'bigram': RandomForestClassifier(max_depth=70, n_estimators=100,max_features=10)
+                        'unigram': RandomForestClassifier(max_depth=None, n_estimators=244,max_features=30),
+                        'bigram': RandomForestClassifier(max_depth=70, n_estimators=150,max_features=10)
                     },
                 'decision_tree':
                     {
@@ -120,25 +116,17 @@ for ngram in ['unigram', 'bigram']:
 
 
 
-exp_df.to_csv('results/experiment_results.csv')
+exp_df.to_csv('results/experiment_results.csv', index=False)
 
+aggregated_df = []
 
+for column in exp_df.columns:
 
+    print(f"average {column}: {round(exp_df[column].mean(), 3)}")
 
+    row = {'name': column, 'value': round(exp_df[column].mean(), 3)}
 
+    aggregated_df.append(row)
 
-######
-###### Logistic regression
-######
-
-# C=3951
-# feat_num=1751
-
-# selected = mutual_info[:feat_num]
-
-# clf = LogisticRegression(C=C, penalty='l1', solver='liblinear').fit(X_train.loc[:, selected.index], y_train)
-# y_pred = clf.predict(X_test.loc[:, selected.index])
-
-# print(f"\nLogistic Regression using C={C} and {feat_num} features")
-# print(f"\nconfusion matrix:\n{confusion_matrix(y_test, y_pred)}")
-# print(classification_report(y_test, y_pred))
+aggregated_df = pd.DataFrame(aggregated_df)
+aggregated_df.to_csv('results/experiment_results_aggregated.csv', index=False)

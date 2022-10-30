@@ -5,15 +5,24 @@ from sklearn.tree import DecisionTreeClassifier
 
 
 
-
+from copy import deepcopy
 from preprocessing import split_data, create_CV
 import pandas as pd
 import optuna
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, precision_recall_fscore_support, accuracy_score
 import numpy as np
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
+def calculate_mut_info(X_train_bin,y_train_bin):
+
+    mut_ind_score = mutual_info_classif(X_train_bin,y_train_bin, discrete_features=True)
+
+    mutual_info = pd.Series(mut_ind_score)
+    mutual_info.index = X_train.columns
+    mutual_info = mutual_info.sort_values(ascending=False)
+
+    return mutual_info
 
 
 ITERATIONS = 10 # number of iterations per classifier - ngram pair
@@ -54,8 +63,8 @@ classifiers = { 'naive_bayes':
                     },
                 'random_forest':
                     {
-                        'unigram': RandomForestClassifier(max_depth=None, n_estimators=999999,max_features=30),
-                        'bigram': RandomForestClassifier(max_depth=70, n_estimators=9999999,max_features=10)
+                        'unigram': RandomForestClassifier(max_depth=None, n_estimators=100,max_features=30),
+                        'bigram': RandomForestClassifier(max_depth=70, n_estimators=100,max_features=10)
                     },
                 'decision_tree':
                     {
@@ -65,38 +74,53 @@ classifiers = { 'naive_bayes':
             }
 
 
-classifiers = ['naive_bayes', 'logistic_regression', 'random_forest', 'decision_tree']
+exp_df = pd.DataFrame()
+
+for ngram in ['unigram', 'bigram']:
 
 
+    dt = pd.read_csv(f"data/converted_count_{ngram}.csv")
+    dt_binary = pd.read_csv(f"data/converted_binary_{ngram}.csv")
 
-dt = pd.read_csv(f"data/converted_count_{NGRAM}.csv")
-dt_binary = pd.read_csv(f"data/converted_binary_{NGRAM}.csv")
+    X_train_bin, y_train_bin, X_test_bin, y_test_bin = split_data(dt_binary)
+    X_train, y_train, X_test, y_test = split_data(dt)
 
-X_train_bin, y_train_bin, X_test_bin, y_test_bin = split_data(dt_binary)
-
-X_train, y_train, X_test, y_test = split_data(dt)
-
-mut_ind_score = mutual_info_classif(X_train_bin,y_train_bin, discrete_features=True)
-
-mutual_info = pd.Series(mut_ind_score)
-mutual_info.index = X_train.columns
-mutual_info = mutual_info.sort_values(ascending=False)
+    mutual_info = calculate_mut_info(X_train_bin,y_train_bin)
 
 
+    for classif_name in ['naive_bayes', 'logistic_regression', 'random_forest', 'decision_tree']:
 
-for c, classifier in enumerate(classifiers):
+        num_feat = used_features[classif_name][ngram]
+        selected = mutual_info[:num_feat]
 
-    f = used_features[c]
-
-    for vect in ['unigram', 'bigram']:
-
-        feats = f[vect]
+        results = []
 
         for i in range(ITERATIONS):
 
+            classifier = deepcopy(classifiers[classif_name][ngram])
+
+            classifier.fit(X_train.loc[:,selected.index], y_train)
+
+            y_pred = classifier.predict(X_test.loc[:,selected.index])
+
+            accuracy = accuracy_score(y_test, y_pred)
+            precision, recall, fscore, support = precision_recall_fscore_support(y_test, y_pred, average='binary')
+
+            result = {
+                        f"{classif_name}_{ngram}_accuracy": accuracy, 
+                        f"{classif_name}_{ngram}_precision": precision, 
+                        f"{classif_name}_{ngram}_recall": recall, 
+                        f"{classif_name}_{ngram}_fscore": fscore
+                    }
+            
+            results.append(result)
+        
+        print(pd.DataFrame(results))
+        exp_df = pd.concat([exp_df, pd.DataFrame(results)], axis=1)
 
 
 
+exp_df.to_csv('results/experiment_results.csv')
 
 
 

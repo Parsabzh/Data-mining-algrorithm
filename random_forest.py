@@ -83,6 +83,7 @@ for tree in trees:
 
 result = pd.DataFrame({"trees": trees, "avg_accuracy": scores})
 result['cumulative_accuracy'] = result['avg_accuracy'].expanding().mean()
+result['cumulative_max'] = result['avg_accuracy'].expanding().max()
 
 result.to_csv(f"results/rf_{NGRAM}_estimators_plot.csv")
 

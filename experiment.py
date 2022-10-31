@@ -21,7 +21,7 @@ def calculate_mut_info(X_train_bin,y_train_bin):
     return mutual_info
 
 
-ITERATIONS = 10 # number of iterations per classifier - ngram pair
+ITERATIONS = 50 # number of iterations per classifier - ngram pair
 
 used_features = {
                   'naive_bayes':

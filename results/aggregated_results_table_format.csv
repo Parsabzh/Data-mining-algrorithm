@@ -1,0 +1,9 @@
+Classifier,Ngram,Accuracy,Precision,Recall,Fscore
+naive_bayes,unigram,0.856,0.828,0.9,0.862
+naive_bayes,bigram,0.856,0.82,0.912,0.864
+logistic_regression,unigram,0.78,0.747,0.846,0.794
+logistic_regression,bigram,0.798,0.743,0.912,0.819
+random_forest,unigram,0.813,0.794,0.846,0.819
+random_forest,bigram,0.803,0.742,0.93,0.825
+decision_tree,unigram,0.596,0.61,0.585,0.585
+decision_tree,bigram,0.697,0.675,0.761,0.715

@@ -88,8 +88,3 @@ result['cumulative_max'] = result['avg_accuracy'].expanding().max()
 result.to_csv(f"results/rf_{NGRAM}_estimators_plot.csv")
 
 
-# RandomForestClassifier(max_depth=50, n_estimators=300,max_features=10)
-# model= RandomForestClassifier()
-# model.fit(X_selected,y_train.values.ravel())
-# score=model.score(X_test.loc[:, selected.index],y_test.values.ravel())
-# print(score)

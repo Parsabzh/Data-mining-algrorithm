@@ -8,6 +8,7 @@ from sklearn.feature_selection import mutual_info_classif
 from copy import deepcopy
 from preprocessing import split_data
 import pandas as pd
+import numpy as np
 
 
 def calculate_mut_info(X_train_bin,y_train_bin):
@@ -110,6 +111,45 @@ for ngram in ['unigram', 'bigram']:
                     }
             
             results.append(result)
+
+
+            corr_num = 50
+            # neg_class_prob_sorted = classifier.feature_log_prob_[0, :].argsort()[::-1]
+            # pos_class_prob_sorted = classifier.feature_log_prob_[1, :].argsort()[::-1]
+            outcome = pd.Series(np.subtract(classifier.feature_log_prob_[1, :],
+                                  classifier.feature_log_prob_[0, :])).abs().argsort()[::-1]
+
+            outcome_val = sorted(np.subtract(classifier.feature_log_prob_[1, :],
+                                         classifier.feature_log_prob_[0, :]), 
+                            reverse=True, key=abs)
+            
+            # print(np.take(X_train.loc[:,selected.index].columns, outcome[:10]))
+            # print(outcome_val[:10])
+
+            test_df = pd.DataFrame(data={
+                "name": np.take(X_train.loc[:,selected.index].columns, outcome[:corr_num]),
+                "value":outcome_val[:corr_num]
+            })
+            print(test_df)
+
+            test_df.to_csv('results/feature_class_importance.csv')
+
+            # print(classifier.feature_log_prob_[0, :][:5])
+            # print(classifier.feature_log_prob_[1, :][:5])
+
+            # print(sorted(classifier.feature_log_prob_[0, :], reverse=True)[:corr_num])
+            # print(sorted(classifier.feature_log_prob_[1, :], reverse=True)[:corr_num])
+            # print(top10neg)
+            # print(top10neg[:10])
+            # print()#.argsort()[:10])
+            # print(classifier.feature_log_prob_[1, :].sort()[:10])#.argsort()[:10])
+
+
+            # print(np.take(X_train.loc[:,selected.index].columns, neg_class_prob_sorted[:corr_num]))
+            # print(np.take(X_train.loc[:,selected.index].columns, pos_class_prob_sorted[:corr_num]))
+
+
+            exit(0)
         
         print(pd.DataFrame(results))
         exp_df = pd.concat([exp_df, pd.DataFrame(results)], axis=1)
